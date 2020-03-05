@@ -13,10 +13,21 @@ const User = require('./models/User');
 // const Review = require('./models/Review');
 
 // Connect to DB
-const MONGO_URL =
-  process.env.NODE_ENV === 'development'
-    ? process.env.MONGO_LOCAL
-    : process.env.MONGO_URI;
+let MONGO_URL = '';
+const { NODE_ENV, MONGO_TEST, MONGO_LOCAL, MONGO_URI } = process.env;
+
+switch (NODE_ENV) {
+  case 'production':
+    MONGO_URL = MONGO_URI;
+
+    break;
+  case 'development':
+    MONGO_URL = MONGO_LOCAL;
+    break;
+  default:
+    MONGO_URL = MONGO_TEST;
+    break;
+}
 mongoose.connect(MONGO_URL, {
   useNewUrlParser: true,
   useCreateIndex: true,

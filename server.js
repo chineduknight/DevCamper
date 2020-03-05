@@ -12,7 +12,7 @@ const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
 const cors = require('cors');
 const errorHandler = require('./middleware/error');
-const connectDB = require('./config/db');
+const { connectDB } = require('./config/db');
 
 // Load env vars
 dotenv.config({ path: './config/config.env' });
@@ -76,8 +76,17 @@ app.use('/api/v1/users', users);
 app.use('/api/v1/reviews', reviews);
 
 app.use(errorHandler);
-
-const PORT = process.env.PORT || 5000;
+const { ENV_PORT, NODE_ENV } = process.env;
+// const PORT = process.env.PORT || 5000;
+let PORT;
+switch (NODE_ENV) {
+  case 'development':
+  case 'production':
+    PORT = ENV_PORT;
+    break;
+  default:
+    PORT = 8234;
+}
 
 const server = app.listen(
   PORT,
@@ -88,7 +97,11 @@ const server = app.listen(
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`.red);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`Error: ${err.message}`.red);
+  }
   // Close server & exit process
   // server.close(() => process.exit(1));
 });
+
+module.exports = server;

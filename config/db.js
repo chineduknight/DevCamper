@@ -1,20 +1,39 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-  const MONGO_URL =
-    process.env.NODE_ENV === 'development'
-      ? process.env.MONGO_LOCAL
-      : process.env.MONGO_URI;
-  const connection = await mongoose.connect(MONGO_URL, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true
-  });
+  let MONGO_URL = '';
+  const { NODE_ENV, MONGO_TEST, MONGO_LOCAL, MONGO_URI } = process.env;
 
-  console.log(
-    `MongoDB Connected: ${connection.connection.host}`.cyan.underline.bold
-  );
+  switch (NODE_ENV) {
+    case 'test':
+      MONGO_URL = MONGO_TEST;
+      break;
+    case 'development':
+      MONGO_URL = MONGO_LOCAL;
+      break;
+    default:
+      MONGO_URL = MONGO_URI;
+  }
+  let connection;
+  try {
+    connection = await mongoose.connect(MONGO_URL, {
+      useNewUrlParser: true,
+      useCreateIndex: true,
+      useFindAndModify: false,
+      useUnifiedTopology: true
+    });
+
+    console.log(
+      `MongoDB Connected: ${connection.connection.host} in ${NODE_ENV} mode`
+        .cyan.underline.bold
+    );
+  } catch (error) {
+    console.log('Failed to connect to DB', error);
+  }
 };
 
-module.exports = connectDB;
+const closeDB = () => {
+  return mongoose.disconnect();
+};
+
+module.exports = { connectDB, closeDB };
